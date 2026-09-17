@@ -1,0 +1,21 @@
+ObjC.import('Foundation');
+ObjC.import('AppKit');
+ObjC.import('Quartz');
+var args = $.NSProcessInfo.processInfo.arguments;
+var src = ObjC.unwrap(args.objectAtIndex(4));
+var outdir = ObjC.unwrap(args.objectAtIndex(5));
+var pagesArg = ObjC.unwrap(args.objectAtIndex(6));
+var url = $.NSURL.fileURLWithPath(src);
+var doc = $.PDFDocument.alloc.initWithURL(url);
+console.log("pageCount=" + doc.pageCount);
+var list = pagesArg.split(",").map(Number);
+list.forEach(function(p){
+  var page = doc.pageAtIndex(p-1);
+  var img = page.thumbnailOfSizeForBox($.NSMakeSize(1700, 2400), 0);
+  var tiff = img.TIFFRepresentation;
+  var rep = $.NSBitmapImageRep.imageRepWithData(tiff);
+  var png = rep.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $.NSDictionary.dictionary);
+  var out = outdir + "/page" + p + ".png";
+  png.writeToFileAtomically($(out), true);
+  console.log("wrote " + out);
+});
