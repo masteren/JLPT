@@ -143,7 +143,7 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--rule);font-si
 
 <header>
   <div class="hbar">
-    <div class="brand">N1 随机题本<span class="ja" style="font-size:14px">ランダム演習</span><small>2010-07 → 2014-12 · 問題1-6</small></div>
+    <div class="brand">N1 随机题本<span class="ja" style="font-size:14px">ランダム演習</span><small id="range">問題1-6</small></div>
     <div class="score" aria-live="polite">
       <span>已做<span class="ja">解答</span> <b id="sDone">0</b></span>
       <span class="ok">对<span class="ja">正解</span> <b id="sOk">0</b></span>
@@ -170,7 +170,7 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--rule);font-si
     <div class="misses" id="misses"></div>
   </section>
 
-  <footer>题目来自 10 场真题版本1 的問題1-6（共 400 道），每次打开重新洗牌，不管之前做对还是做错。答案默认盖着，点选项才揭晓。2014-07 的★题按第 3 格出题（版本1 印在第 2 格）；2014-07 Q22 答案表写 2，按笔记以 1 为正解。<br>每道题下面的「对过 / 错过几回」是累计数：第一次做真题那回加上在这里每次作答，换设备也在，洗牌不会清空。本轮进度只存在这台设备的浏览器里，点「重新洗牌」会清空。<br>全400問をシャッフルして出題。キー 1〜4 で解答、Enter で次へ。</footer>
+  <footer>题目来自 <span id="nExam"></span> 场真题版本1 的問題1-6（共 <span class="nQ"></span> 道），每次打开重新洗牌，不管之前做对还是做错。答案默认盖着，点选项才揭晓。2014-07 的★题按第 3 格出题（版本1 印在第 2 格）；2014-07 Q22 答案表写 2，按笔记以 1 为正解。<br>每道题下面的「对过 / 错过几回」是累计数：第一次做真题那回加上在这里每次作答，换设备也在，洗牌不会清空。本轮进度只存在这台设备的浏览器里，点「重新洗牌」会清空。<br>全<span class="nQ"></span>問をシャッフルして出題。キー 1〜4 で解答、Enter で次へ。</footer>
 </div>
 
 <script>
@@ -187,8 +187,12 @@ const Q=[];
 function X(exam,rows){for(const [q,stem,opts,ans,note] of rows)Q.push({id:exam+"#"+q,exam,q,stem,opts,ans,note,sec:secOf(q).k});}
 /*__DATA__*/
 /*__FIRST__*/
-const EXAMS=[...new Set(Q.map(x=>x.exam))];
+const EXAMS=[...new Set(Q.map(x=>x.exam))].sort();
 const $=s=>document.querySelector(s);
+/* 页头范围和题数按题库自动算，新场次加进 data/ 就跟着变 */
+$("#range").textContent=EXAMS[0]+" → "+EXAMS[EXAMS.length-1]+" · 問題1-6";
+$("#nExam").textContent=EXAMS.length;
+document.querySelectorAll(".nQ").forEach(el=>el.textContent=Q.length);
 const store={get(k,d){try{const v=localStorage.getItem("n1rand:"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("n1rand:"+k,JSON.stringify(v))}catch(e){}}};
 
 let S=store.get("state",null);
