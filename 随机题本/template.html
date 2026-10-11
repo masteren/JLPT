@@ -1,0 +1,325 @@
+<title>N1 随机题本</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Shippori+Mincho:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* 布局：一题一卡居中，上方筛选条，下方本轮记录；视觉沿用错题本（墨蓝 + 明朝体题干） */
+:root{
+  --paper:#F3F4F7; --surface:#FFFFFF; --surface-2:#F6F7FA; --well:#EEF0F5;
+  --ink:#1D2230; --ink-2:#4E5668; --ink-3:#848B9B;
+  --rule:#E1E4EB; --rule-2:#CDD2DC;
+  --ai:#2D4C8C; --ai-soft:#E8EDF7;
+  --red:#C2412D; --red-soft:#FBEEEB; --red-line:#EBC2B9;
+  --green:#2A7A58; --green-soft:#E7F3ED; --green-line:#AFD3C1;
+  --shadow:0 1px 2px rgba(29,34,48,.05),0 6px 22px rgba(29,34,48,.06);
+  --sans:"Noto Sans SC","PingFang SC","Hiragino Sans","Microsoft YaHei",sans-serif;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Songti SC",serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --paper:#12151C; --surface:#1B1F29; --surface-2:#20252F; --well:#252B37;
+  --ink:#E7E9EF; --ink-2:#AAB1C0; --ink-3:#798194;
+  --rule:#2C3240; --rule-2:#3A4152;
+  --ai:#8FA9E6; --ai-soft:#222C42;
+  --red:#F08470; --red-soft:#35211E; --red-line:#6E3A30;
+  --green:#6CCB9E; --green-soft:#17291F; --green-line:#2F5E48;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 22px rgba(0,0,0,.25);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#12151C; --surface:#1B1F29; --surface-2:#20252F; --well:#252B37;
+  --ink:#E7E9EF; --ink-2:#AAB1C0; --ink-3:#798194;
+  --rule:#2C3240; --rule-2:#3A4152;
+  --ai:#8FA9E6; --ai-soft:#222C42;
+  --red:#F08470; --red-soft:#35211E; --red-line:#6E3A30;
+  --green:#6CCB9E; --green-soft:#17291F; --green-line:#2F5E48;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 22px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.75;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.ja{font-size:.8em;font-weight:400;color:var(--ink-3);margin-inline-start:.35em}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
+.hbar{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:12px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between}
+.brand{font-family:var(--serif);font-weight:800;font-size:22px;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand small{font-family:var(--mono);font-size:13px;font-weight:400;color:var(--ink-3)}
+.score{display:flex;gap:14px;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums;align-items:baseline}
+.score b{font-family:var(--mono);font-weight:500;font-size:17px;color:var(--ink)}
+.score .ok b{color:var(--green)}
+.score .ng b{color:var(--red)}
+
+/* 筛选 */
+details.filt{margin-top:18px;background:var(--surface);border:1px solid var(--rule);border-radius:12px}
+details.filt summary{cursor:pointer;list-style:none;padding:10px 16px;font-size:14.5px;color:var(--ink-2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+details.filt summary::-webkit-details-marker{display:none}
+details.filt summary::before{content:"▸";color:var(--ink-3);transition:transform .15s}
+details.filt[open] summary::before{transform:rotate(90deg)}
+details.filt summary b{color:var(--ink);font-weight:500}
+.fbody{padding:4px 16px 14px;display:grid;gap:10px}
+.frow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.frow>em{font-style:normal;font-size:13px;color:var(--ink-3);width:76px;flex:none;font-weight:500}
+.chip{font-family:var(--sans);font-size:14px;padding:3px 11px;border:1px solid var(--rule-2);background:var(--surface);color:var(--ink-2);border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--ai);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ai);border-color:var(--ai);color:var(--surface)}
+.chip[aria-pressed="true"] .ja{color:inherit;opacity:.75}
+.tog{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2);cursor:pointer}
+.tog input{accent-color:var(--ai);width:16px;height:16px;margin:0}
+
+/* 题卡 */
+.card{margin-top:18px;background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:22px 24px 20px;box-shadow:var(--shadow)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13.5px;color:var(--ink-3)}
+.meta .id{font-family:var(--mono);font-weight:500;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.meta .sec{color:var(--ai);background:var(--ai-soft);padding:1px 10px;border-radius:999px;font-weight:500}
+.meta .left{margin-inline-start:auto;font-variant-numeric:tabular-nums}
+.inst{margin-top:12px;font-size:14px;color:var(--ink-3)}
+.stem{margin-top:4px;font-family:var(--serif);font-weight:500;font-size:20px;line-height:1.95}
+.stem u{text-decoration:underline;text-decoration-color:var(--ai);text-decoration-thickness:2px;text-underline-offset:6px}
+.stem b{font-weight:800}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}
+.opts.long{grid-template-columns:minmax(0,1fr)}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:start;font-family:var(--serif);font-weight:500;font-size:17.5px;line-height:1.65;padding:10px 13px;border:1px solid var(--rule);border-radius:10px;background:var(--surface-2);color:inherit;cursor:pointer;min-width:0}
+.opt:hover:not(:disabled){border-color:var(--ai);background:var(--ai-soft)}
+.opt:disabled{cursor:default}
+.opt i{font-style:normal;font-family:var(--mono);font-size:13px;color:var(--ink-3);flex:none;width:23px;height:23px;margin-top:2px;border-radius:50%;border:1px solid var(--rule-2);display:grid;place-items:center;background:var(--surface)}
+.opt span{min-width:0;overflow-wrap:anywhere}
+.opt.right{background:var(--green-soft);border-color:var(--green-line)}
+.opt.right i{background:var(--green);border-color:var(--green);color:var(--surface)}
+.opt.wrong{background:var(--red-soft);border-color:var(--red-line)}
+.opt.wrong span{text-decoration:line-through;text-decoration-color:var(--red-line)}
+.opt.wrong i{background:var(--red);border-color:var(--red);color:var(--surface)}
+.opt.dim{opacity:.6}
+
+.result{margin-top:16px;display:grid;gap:10px}
+.verdict{font-weight:700;font-size:16px}
+.verdict.ok{color:var(--green)}
+.verdict.ng{color:var(--red)}
+.note{font-size:16px;color:var(--ink);background:var(--ai-soft);border-radius:10px;padding:11px 16px;line-height:1.8}
+.note::before{content:"要点 · ポイント";display:block;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ai);margin-bottom:2px}
+.full{font-family:var(--serif);font-weight:500;font-size:17px;background:var(--green-soft);border-radius:10px;padding:10px 16px;line-height:1.85}
+.full::before{content:"完整句 · 正しい文";display:block;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--green);margin-bottom:2px}
+
+.tally{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;font-size:14px;color:var(--ink-3);font-variant-numeric:tabular-nums;padding-top:10px;border-top:1px dashed var(--rule-2)}
+.tally b{font-family:var(--mono);font-weight:500;font-size:15px}
+.tally .ok b{color:var(--green)}
+.tally .ng b{color:var(--red)}
+.tally .first{font-size:13px}
+.act{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font-family:var(--sans);font-size:15px;font-weight:500;padding:9px 18px;border-radius:10px;cursor:pointer;border:1px solid var(--ai);background:var(--ai);color:var(--surface)}
+.btn:hover{filter:brightness(1.08)}
+.btn .ja{color:inherit;opacity:.75}
+.btn.ghost{background:none;color:var(--ai)}
+.btn.ghost:hover{background:var(--ai-soft);filter:none}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+.keys{font-size:13px;color:var(--ink-3);margin-inline-start:auto}
+.keys kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--rule-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+
+/* 本轮记录 */
+.log{margin-top:26px}
+.log h2{font-size:14px;font-weight:700;color:var(--ink-2);margin:0 0 10px;display:flex;gap:10px;align-items:center}
+.log h2::after{content:"";flex:1;height:1px;background:var(--rule)}
+.bysec{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bs{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--ink-2)}
+.bs b{display:block;font-family:var(--mono);font-weight:500;font-size:19px;color:var(--ink);font-variant-numeric:tabular-nums}
+.bs .bar{height:4px;border-radius:2px;background:var(--well);margin-top:6px;overflow:hidden}
+.bs .bar span{display:block;height:100%;background:var(--green)}
+.misses{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.miss{font-family:var(--mono);font-size:13px;padding:2px 10px;border-radius:999px;background:var(--red-soft);color:var(--red);border:1px solid var(--red-line);cursor:pointer}
+.miss:hover{border-color:var(--red)}
+.empty{font-size:14.5px;color:var(--ink-3)}
+.done{text-align:center;padding:30px 10px}
+.done .big{font-family:var(--serif);font-weight:800;font-size:26px}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink-3);line-height:1.7}
+
+@media (max-width:560px){
+  .card{padding:18px 16px}
+  .stem{font-size:18.5px}
+  .opts{grid-template-columns:minmax(0,1fr)}
+  .frow>em{width:100%}
+  .keys{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="hbar">
+    <div class="brand">N1 随机题本<span class="ja" style="font-size:14px">ランダム演習</span><small>2010-07 → 2014-12 · 問題1-6</small></div>
+    <div class="score" aria-live="polite">
+      <span>已做<span class="ja">解答</span> <b id="sDone">0</b></span>
+      <span class="ok">对<span class="ja">正解</span> <b id="sOk">0</b></span>
+      <span class="ng">错<span class="ja">誤答</span> <b id="sNg">0</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <details class="filt" id="filt">
+    <summary>出题范围<span class="ja">出題範囲</span>：<b id="fsum"></b></summary>
+    <div class="fbody">
+      <div class="frow" id="fSec"><em>题型 · 問題</em></div>
+      <div class="frow" id="fExam"><em>场次 · 回</em></div>
+      <label class="tog"><input type="checkbox" id="again" checked>答错的题这一轮末尾再出一次<span class="ja">間違えた問題をもう一度</span></label>
+    </div>
+  </details>
+
+  <div id="stage"></div>
+
+  <section class="log">
+    <h2>本轮记录<span class="ja">今回の記録</span></h2>
+    <div class="bysec" id="bysec"></div>
+    <div class="misses" id="misses"></div>
+  </section>
+
+  <footer>题目来自 10 场真题版本1 的問題1-6（共 400 道），每次打开重新洗牌，不管之前做对还是做错。答案默认盖着，点选项才揭晓。2014-07 的★题按第 3 格出题（版本1 印在第 2 格）；2014-07 Q22 答案表写 2，按笔记以 1 为正解。<br>每道题下面的「对过 / 错过几回」是累计数：第一次做真题那回加上在这里每次作答，换设备也在，洗牌不会清空。本轮进度只存在这台设备的浏览器里，点「重新洗牌」会清空。<br>全400問をシャッフルして出題。キー 1〜4 で解答、Enter で次へ。</footer>
+</div>
+
+<script>
+const SEC=[
+  {k:1,name:"問題1 漢字読み",short:"読み",inst:"＿＿＿の言葉の読み方として最もよいものを選びなさい。",r:[1,6]},
+  {k:2,name:"問題2 文脈規定",short:"文脈",inst:"（　　）に入れるのに最もよいものを選びなさい。",r:[7,13]},
+  {k:3,name:"問題3 言い換え類義",short:"言い換え",inst:"＿＿＿の言葉に意味が最も近いものを選びなさい。",r:[14,19]},
+  {k:4,name:"問題4 用法",short:"用法",inst:"次の言葉の使い方として最もよいものを選びなさい。",r:[20,25]},
+  {k:5,name:"問題5 文法形式",short:"文法",inst:"次の文の（　　）に入れるのに最もよいものを選びなさい。",r:[26,35]},
+  {k:6,name:"問題6 ★文の組み立て",short:"★",inst:"次の文の ★ に入る最もよいものを選びなさい。",r:[36,40]}
+];
+const secOf=q=>SEC.find(s=>q>=s.r[0]&&q<=s.r[1]);
+const Q=[];
+function X(exam,rows){for(const [q,stem,opts,ans,note] of rows)Q.push({id:exam+"#"+q,exam,q,stem,opts,ans,note,sec:secOf(q).k});}
+/*__DATA__*/
+/*__FIRST__*/
+const EXAMS=[...new Set(Q.map(x=>x.exam))];
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem("n1rand:"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("n1rand:"+k,JSON.stringify(v))}catch(e){}}};
+
+let S=store.get("state",null);
+let F=store.get("filter",{sec:SEC.map(s=>s.k),exam:EXAMS.slice(),again:true});
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function pool(){return Q.filter(x=>F.sec.includes(x.sec)&&F.exam.includes(x.exam)).map(x=>x.id)}
+function fresh(){S={deck:shuffle(pool()),pos:0,res:{},picked:null,requeued:{}};save()}
+function save(){store.set("state",S);store.set("filter",F)}
+const byId=Object.fromEntries(Q.map(x=>[x.id,x]));
+if(!S||!Array.isArray(S.deck)||S.deck.some(id=>!byId[id]))fresh();
+
+function chip(label,ja,on,fn){const b=document.createElement("button");b.type="button";b.className="chip";b.setAttribute("aria-pressed",on);b.innerHTML=label+(ja?`<span class="ja">${ja}</span>`:"");b.onclick=fn;return b}
+function renderFilters(){
+  const fs=$("#fSec"),fe=$("#fExam");
+  fs.querySelectorAll(".chip").forEach(n=>n.remove());fe.querySelectorAll(".chip").forEach(n=>n.remove());
+  const allS=F.sec.length===SEC.length,allE=F.exam.length===EXAMS.length;
+  fs.append(chip("全部","すべて",allS,()=>{F.sec=allS?[]:SEC.map(s=>s.k);apply()}));
+  for(const s of SEC)fs.append(chip(s.name,"",F.sec.includes(s.k),()=>{F.sec=toggle(F.sec,s.k);apply()}));
+  fe.append(chip("全部","すべて",allE,()=>{F.exam=allE?[]:EXAMS.slice();apply()}));
+  for(const e of EXAMS)fe.append(chip(e,"",F.exam.includes(e),()=>{F.exam=toggle(F.exam,e);apply()}));
+  $("#again").checked=F.again;
+  const n=pool().length;
+  $("#fsum").textContent=(allS?"全部题型":F.sec.length+" 种题型")+" · "+(allE?"全部场次":F.exam.length+" 场")+" · "+n+" 道";
+}
+function toggle(arr,v){return arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]}
+function apply(){save();renderFilters();fresh();render()}
+$("#again").onchange=e=>{F.again=e.target.checked;save()};
+
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function fill(x){
+  const m=x.note.match(/语序 (\d)-(\d)-(\d)-(\d)/);if(!m)return null;
+  const parts=m.slice(1).map(n=>x.opts[n-1]);let i=0;
+  return x.stem.replace(/ ?(＿＿|<b>★<\/b>) ?/g,(t,g)=>{const p=parts[i++];return g==="＿＿"?p:`<b style="color:var(--green)">${p}</b>`});
+}
+function noteText(x){return x.sec===6?x.note.replace(/^语序 [\d-]+：[^。（]*。?/,"").trim():x.note}
+
+function render(){
+  const st=$("#stage");
+  const done=Object.keys(S.res).length,ok=Object.values(S.res).filter(v=>v.ok).length;
+  $("#sDone").textContent=done;$("#sOk").textContent=ok;$("#sNg").textContent=done-ok;
+  renderLog();
+  if(!S.deck.length){st.innerHTML=`<div class="card done"><div class="empty">没有选中任何题型或场次。<span class="ja">範囲を選んでください</span></div></div>`;return}
+  if(S.pos>=S.deck.length){
+    st.innerHTML=`<div class="card done"><div class="big">这一轮做完了<span class="ja">一周しました</span></div><p class="empty">共答 ${S.deck.length} 次，对 ${countOk()} 次。</p><div class="act" style="justify-content:center"><button class="btn" id="re" type="button">重新洗牌<span class="ja">もう一周</span></button></div></div>`;
+    $("#re").onclick=()=>{fresh();render()};return;
+  }
+  const x=byId[S.deck[S.pos]],sec=SEC[x.sec-1];
+  const long=x.sec===4||x.opts.some(o=>o.length>13);
+  const picked=S.picked;
+  let h=`<article class="card"><div class="meta"><span class="id">${x.exam} · ${x.q}</span><span class="sec">${sec.name}</span><span class="left">第 ${S.pos+1} / ${S.deck.length} 题</span></div>`;
+  h+=`<div class="inst">${sec.inst}</div><div class="stem">${x.stem}</div><div class="opts${long?" long":""}">`;
+  x.opts.forEach((o,i)=>{const n=i+1;let c="";if(picked!=null){if(n===x.ans)c=" right";else if(n===picked)c=" wrong";else c=" dim"}
+    h+=`<button class="opt${c}" type="button" data-n="${n}"${picked!=null?" disabled":""}><i>${n}</i><span>${esc(o)}</span></button>`});
+  h+=`</div>`;
+  if(picked!=null){
+    const good=picked===x.ans;
+    h+=`<div class="result"><div class="verdict ${good?"ok":"ng"}">${good?"答对了 · 正解":"答错了 · 正解是 "+x.ans}</div>`;
+    const f=x.sec===6?fill(x):null;if(f)h+=`<div class="full">${f}</div>`;
+    const nt=noteText(x);if(nt)h+=`<div class="note">${esc(nt)}</div>`;
+    h+=`</div>`;
+  }
+  h+=`<div class="tally" data-id="${tid(x)}">${tallyHTML(x)}</div>`;
+  h+=`<div class="act">`;
+  if(picked!=null)h+=`<button class="btn" id="next" type="button">下一题<span class="ja">次へ</span></button>`;
+  else h+=`<button class="btn ghost" id="skip" type="button">先跳过<span class="ja">スキップ</span></button>`;
+  h+=`<button class="btn ghost" id="re" type="button">重新洗牌<span class="ja">シャッフル</span></button><span class="keys"><kbd>1</kbd>–<kbd>4</kbd> 作答　<kbd>Enter</kbd> 下一题</span></div></article>`;
+  st.innerHTML=h;
+  st.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.n));
+  const nx=$("#next");if(nx){nx.onclick=next;nx.focus({preventScroll:true})}
+  const sk=$("#skip");if(sk)sk.onclick=()=>{S.deck.push(S.deck.splice(S.pos,1)[0]);save();render()};
+  $("#re").onclick=()=>{fresh();render();window.scrollTo({top:0})};
+}
+function countOk(){return Object.values(S.res).reduce((a,v)=>a+v.okN,0)}
+function pick(n){
+  if(S.picked!=null)return;
+  const id=S.deck[S.pos],x=byId[id],good=n===x.ans;
+  S.picked=n;
+  const r=S.res[id]||{ok:true,okN:0,tries:0};
+  if(r.tries===0)r.ok=good;r.tries++;if(good)r.okN++;
+  S.res[id]=r;
+  if(!good&&F.again&&!S.requeued[id]){S.deck.push(id);S.requeued[id]=1}
+  bump(x,good);
+  save();render();
+}
+
+/* ============ 累计对错回数：存在页面数据库 tally/<场次-题号>，每答一次 +1 ============ */
+let TALLY=store.get("tally",{}),TDB=null,tq=Promise.resolve();
+const tid=x=>x.exam+"-"+x.q;
+function first(x){return FIRST_EXAMS.has(x.exam)?(FIRST_NG.has(tid(x))?"ng":"ok"):null}
+function tallyHTML(x){
+  const t=TALLY[tid(x)]||{ok:0,ng:0},f=first(x);
+  const ok=t.ok+(f==="ok"?1:0),ng=t.ng+(f==="ng"?1:0);
+  return `<span class="ok">对过<span class="ja">正解</span> <b>${ok}</b> 回</span><span class="ng">错过<span class="ja">不正解</span> <b>${ng}</b> 回</span>`
+    +(f?`<span class="first">含第一次做真题那回（${f==="ok"?"对":"错"}）</span>`:"");
+}
+function paintTally(){document.querySelectorAll(".tally[data-id]").forEach(el=>{const x=byId[el.dataset.id.replace(/-(\d+)$/,"#$1")];if(x)el.innerHTML=tallyHTML(x)})}
+function bump(x,good){
+  const id=tid(x),t=TALLY[id]={...(TALLY[id]||{ok:0,ng:0})};
+  good?t.ok++:t.ng++;
+  store.set("tally",TALLY);
+  if(TDB){const body={ok:t.ok,ng:t.ng,at:new Date().toISOString()};tq=tq.then(()=>TDB.doc("tally/"+id).set(body)).catch(()=>{})}
+}
+(async()=>{try{
+  TDB=await window.claude?.use?.("db");if(!TDB)return;
+  TDB.collection("tally").onSnapshot(s=>{
+    const t={};s.docs.forEach(d=>{const v=d.data()||{};t[d.id]={ok:+v.ok||0,ng:+v.ng||0}});
+    TALLY=t;store.set("tally",TALLY);paintTally();
+  },()=>{});
+}catch(e){}})();
+function next(){if(S.picked==null)return;S.pos++;S.picked=null;save();render();window.scrollTo({top:0,behavior:"smooth"})}
+function renderLog(){
+  const bs=$("#bysec");bs.innerHTML="";
+  const ids=Object.keys(S.res);
+  if(!ids.length){bs.innerHTML=`<div class="empty">还没开始。做一题，这里按题型统计正确率（只算第一次作答）。</div>`;$("#misses").innerHTML="";return}
+  for(const s of SEC){
+    const xs=ids.filter(id=>byId[id].sec===s.k);if(!xs.length)continue;
+    const ok=xs.filter(id=>S.res[id].ok).length,p=Math.round(ok/xs.length*100);
+    const d=document.createElement("div");d.className="bs";
+    d.innerHTML=`${s.name}<b>${ok} / ${xs.length}</b><div class="bar"><span style="width:${p}%"></span></div>`;bs.append(d);
+  }
+  const m=$("#misses");m.innerHTML="";
+  const bad=ids.filter(id=>!S.res[id].ok);
+  if(bad.length){const t=document.createElement("div");t.className="empty";t.style.width="100%";t.textContent="这一轮第一次就错的（点一下跳过去再看）：";m.append(t)}
+  for(const id of bad){const b=document.createElement("button");b.type="button";b.className="miss";b.textContent=id.replace("#"," · Q");
+    b.onclick=()=>{const at=S.deck.indexOf(id,S.pos);if(at>=0){S.deck.splice(at,1)}S.deck.splice(S.pos+(S.picked!=null?1:0),0,id);if(S.picked!=null){S.pos++;S.picked=null}save();render();window.scrollTo({top:0,behavior:"smooth"})};
+    m.append(b)}
+}
+document.addEventListener("keydown",e=>{
+  if(e.target.closest&&e.target.closest("input,textarea"))return;
+  if(/^[1-4]$/.test(e.key)&&S.picked==null&&S.pos<S.deck.length){pick(+e.key);e.preventDefault()}
+  else if(e.key==="Enter"&&S.picked!=null){const a=document.activeElement;if(a&&a.tagName==="BUTTON"&&a.id!=="next")return;next();e.preventDefault()}
+});
+renderFilters();render();
+</script>
