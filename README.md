@@ -97,5 +97,5 @@
 ## 工具
 
 `题/` 里的 PDF 分文字版和扫描版：文字版用 `工具/pdf_text.py` 抽文本，
-扫描版用 `工具/render_pdf.ps1` 渲染成 PNG。都只依赖 Windows 自带环境，
-不用装 poppler。详见 [工具/README.md](工具/README.md)。
+扫描版渲染成 PNG（Windows 用 `工具/render_pdf.ps1`，macOS 用 `工具/render_pdf.swift`）。
+都只依赖系统自带环境，不用装 poppler。详见 [工具/README.md](工具/README.md)。

@@ -1,6 +1,6 @@
 # 工具
 
-`题/` 里的 PDF 分两种，处理方式不同。两条路径都只用 Windows 自带环境，无需第三方库。
+`题/` 里的 PDF 分两种，处理方式不同。两条路径都只用系统自带环境（Windows 或 macOS），无需第三方库。
 
 ## 1. 文字版 PDF → 抽文本
 
@@ -9,6 +9,8 @@ PYTHONIOENCODING=utf-8 python 工具/pdf_text.py "题/2012年7月/【2】2012年
 ```
 
 只用 Python 标准库（zlib + re），自己解析 PDF 对象和 ToUnicode CMap。
+
+macOS 上直接 `python3 工具/pdf_text.py "<pdf>" > out.txt` 即可。
 
 > Windows 上必须带 `PYTHONIOENCODING=utf-8`，否则 stdout 走 GBK 会在日文字符上
 > 报 `UnicodeEncodeError`。读回这个 txt 时同样要显式 `encoding='utf-8'`。
@@ -22,6 +24,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File 工具/render_pdf.ps1 `
 
 走 WinRT `Windows.Data.Pdf`。输出到 `<输出目录>/page-001.png`，目录不存在会自动创建。
 `-Width` 默认 1700 px，日文小字和答案表都看得清。
+
+macOS 用 `工具/render_pdf.swift`（系统自带的 PDFKit，`swift` 直接解释执行，不用编译）：
+
+```bash
+swift 工具/render_pdf.swift "题/2-2010年-2020年/2015年7月/【1】2015年07月N1 真题-版本1.pdf" "<输出目录>" "2,3,4"
+```
+
+参数依次是 PDF、输出目录、页码（省略则渲染全部）、宽度（默认 1700）。输出文件名和 Windows 版一样是 `page-001.png`。
 
 ## 怎么判断是哪一种
 
