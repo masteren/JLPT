@@ -203,6 +203,15 @@ function fresh(){S={deck:shuffle(pool()),pos:0,res:{},picked:null,requeued:{}};s
 function save(){store.set("state",S);store.set("filter",F)}
 const byId=Object.fromEntries(Q.map(x=>[x.id,x]));
 if(!S||!Array.isArray(S.deck)||S.deck.some(id=>!byId[id]))fresh();
+/* 新加进题库的场次：自动选上，并随机插进这一轮还没做的部分（不清空进度）。
+   旧版本没记 exams，就把比已选最新一场还新的当作新场次 */
+{const seen=store.get("exams",null)||EXAMS.filter(e=>e<=[...F.exam].sort().pop());
+ const added=EXAMS.filter(e=>!seen.includes(e));
+ if(added.length){F.exam=[...new Set([...F.exam,...added])];
+  for(const id of Q.filter(x=>added.includes(x.exam)&&F.sec.includes(x.sec)).map(x=>x.id)){
+   const lo=S.pos+(S.picked!=null?1:0);S.deck.splice(lo+Math.floor(Math.random()*(S.deck.length-lo+1)),0,id)}
+  save()}
+ store.set("exams",EXAMS)}
 
 function chip(label,ja,on,fn){const b=document.createElement("button");b.type="button";b.className="chip";b.setAttribute("aria-pressed",on);b.innerHTML=label+(ja?`<span class="ja">${ja}</span>`:"");b.onclick=fn;return b}
 function renderFilters(){
